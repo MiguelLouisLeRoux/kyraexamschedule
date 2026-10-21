@@ -221,7 +221,7 @@
       <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
         <div>
           <label style="display:block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Select Educator</label>
-          <select id="teacherSelect" onchange="renderTeacherView()"></select>
+          <select id="teacherSelect" autocomplete="off" onchange="renderTeacherView()"></select>
         </div>
         <div>
           <label style="display:block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Choose Date</label>
@@ -344,14 +344,29 @@
     const uniqueDates = Array.from(new Set(RECORDS.map(r => r.date))).filter(Boolean).sort();
 
     function init() {
-      // Populate teacher select
+      // Populate the educator dropdown and explicitly set its initial selection.
       const tSelect = document.getElementById('teacherSelect');
-      uniqueTeachers.forEach(t => {
-        const opt = document.createElement('option');
-        opt.value = t;
-        opt.textContent = t;
-        tSelect.appendChild(opt);
+      const defaultTeacher = 'Singh Kyra';
+      tSelect.replaceChildren();
+
+      uniqueTeachers.forEach(teacher => {
+        const option = document.createElement('option');
+        option.value = teacher;
+        option.textContent = teacher;
+        if (teacher === defaultTeacher) {
+          option.defaultSelected = true;
+          option.selected = true;
+        }
+        tSelect.appendChild(option);
       });
+
+      const defaultIndex = Array.from(tSelect.options)
+        .findIndex(option => option.value === defaultTeacher);
+      if (defaultIndex !== -1) {
+        tSelect.selectedIndex = defaultIndex;
+      } else {
+        console.warn('Default educator not found:', defaultTeacher);
+      }
 
       // Populate session date select
       const sDateSelect = document.getElementById('sessionDateSelect');
@@ -539,7 +554,20 @@
       document.getElementById(id).style.display = 'none';
     }
 
-    window.onload = init;
+    // Set up the application once the document is ready.
+    window.addEventListener('DOMContentLoaded', init);
+
+    // Some browsers restore form selections when displaying a page.
+    // Apply the initial educator again on the first page display only.
+    window.addEventListener('pageshow', () => {
+      const select = document.getElementById('teacherSelect');
+      const option = Array.from(select.options)
+        .find(item => item.value === 'Singh Kyra');
+      if (option) {
+        select.value = option.value;
+        renderTeacherView();
+      }
+    });
   </script>
 </body>
 </html>
